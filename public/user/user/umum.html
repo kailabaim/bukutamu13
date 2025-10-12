@@ -1,0 +1,1070 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Buku Tamu Instansi</title>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <style>
+    /* Reset default browser styles */
+    * {
+        margin: 0;
+        padding: 0;
+        box-sizing: border-box;
+        font-family: 'Poppins', sans-serif;
+    }
+
+    /* Body background */
+    body {
+        background: linear-gradient(135deg, #f7af9d 0%, #e5989b 100%);
+        color: #333;
+        line-height: 1.6;
+        min-height: 100vh;
+        animation: backgroundShift 10s ease-in-out infinite;
+    }
+
+    @keyframes backgroundShift {
+        0%, 100% { background: linear-gradient(135deg, #f7af9d 0%, #e5989b 100%); }
+        50% { background: linear-gradient(135deg, #e5989b 0%, #f7af9d 100%); }
+    }
+
+    /* Back button */
+    .back-btn {
+        display: inline-block;
+        margin: 20px;
+        color: #8b2c2c;
+        text-decoration: none;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        padding: 10px 20px;
+        border-radius: 25px;
+        background: rgba(255, 255, 255, 0.2);
+        backdrop-filter: blur(10px);
+        transform: translateY(0);
+    }
+
+    .back-btn:hover {
+        color: #fff;
+        background: #8b2c2c;
+        transform: translateY(-3px);
+        box-shadow: 0 10px 20px rgba(139, 44, 44, 0.3);
+    }
+
+    .back-btn i {
+        margin-right: 8px;
+        transition: transform 0.3s ease;
+    }
+
+    .back-btn:hover i {
+        transform: translateX(-5px);
+    }
+
+    /* Header */
+    header {
+        background: linear-gradient(135deg, #8b2c2c 0%, #a94442 100%);
+        color: white;
+        padding: 25px;
+        text-align: center;
+        position: relative;
+        overflow: hidden;
+        animation: slideDown 0.8s ease-out;
+    }
+
+    @keyframes slideDown {
+        from {
+            transform: translateY(-100%);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    header::before {
+        content: '';
+        position: absolute;
+        top: -50%;
+        left: -50%;
+        width: 200%;
+        height: 200%;
+        background: linear-gradient(45deg, transparent, rgba(255,255,255,0.1), transparent);
+        animation: shine 3s infinite;
+    }
+
+    @keyframes shine {
+        0% { transform: translateX(-100%) translateY(-100%) rotate(30deg); }
+        100% { transform: translateX(100%) translateY(100%) rotate(30deg); }
+    }
+
+    header h1 {
+        font-size: 28px;
+        letter-spacing: 2px;
+        font-weight: 700;
+        position: relative;
+        z-index: 2;
+        text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+    }
+
+    /* Social icons */
+    .social-icons {
+        display: flex;
+        justify-content: center;
+        gap: 20px;
+        margin-top: 15px;
+        position: relative;
+        z-index: 2;
+    }
+
+    .social-icons a {
+        color: white;
+        font-size: 20px;
+        transition: all 0.3s ease;
+        padding: 10px;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.1);
+        backdrop-filter: blur(10px);
+        text-decoration: none;
+    }
+
+    .social-icons a:hover {
+        color: #ffcccb;
+        transform: translateY(-5px) scale(1.1);
+        background: rgba(255, 255, 255, 0.2);
+        box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+    }
+
+    /* Form Container */
+    .container {
+        max-width: 800px;
+        background: rgba(255, 255, 255, 0.95);
+        backdrop-filter: blur(20px);
+        margin: 40px auto;
+        padding: 40px;
+        border-radius: 20px;
+        box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+        border: 1px solid rgba(255, 255, 255, 0.2);
+        animation: slideUp 1s ease-out;
+        position: relative;
+        overflow: hidden;
+    }
+
+    @keyframes slideUp {
+        from {
+            transform: translateY(50px);
+            opacity: 0;
+        }
+        to {
+            transform: translateY(0);
+            opacity: 1;
+        }
+    }
+
+    .container::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 4px;
+        background: linear-gradient(90deg, #8b2c2c, #a94442, #8b2c2c);
+        animation: gradientMove 3s ease-in-out infinite;
+    }
+
+    @keyframes gradientMove {
+        0%, 100% { background: linear-gradient(90deg, #8b2c2c, #a94442, #8b2c2c); }
+        50% { background: linear-gradient(90deg, #a94442, #8b2c2c, #a94442); }
+    }
+
+    /* Judul Halaman */
+    .container h2 {
+        text-align: center;
+        color: #8b2c2c;
+        margin-bottom: 30px;
+        font-size: 28px;
+        font-weight: 700;
+        position: relative;
+        animation: fadeIn 1.2s ease-out;
+    }
+
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(-20px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+
+    .container h2::after {
+        content: '';
+        display: block;
+        width: 80px;
+        height: 3px;
+        background: linear-gradient(90deg, #8b2c2c, #a94442);
+        margin: 10px auto;
+        border-radius: 2px;
+        animation: expand 1.5s ease-out;
+    }
+
+    @keyframes expand {
+        from { width: 0; }
+        to { width: 80px; }
+    }
+
+    /* Form styling */
+    .form-row {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 20px;
+        margin-bottom: 20px;
+    }
+
+    .form-group {
+        animation: slideInLeft 0.8s ease-out;
+        animation-fill-mode: both;
+    }
+
+    .form-group:nth-child(even) {
+        animation-name: slideInRight;
+    }
+
+    @keyframes slideInLeft {
+        from {
+            transform: translateX(-30px);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
+    @keyframes slideInRight {
+        from {
+            transform: translateX(30px);
+            opacity: 0;
+        }
+        to {
+            transform: translateX(0);
+            opacity: 1;
+        }
+    }
+
+    .form-group.full-width {
+        grid-column: 1 / -1;
+    }
+
+    /* Labels */
+    form label {
+        display: block;
+        margin-bottom: 8px;
+        font-weight: 600;
+        color: #333;
+        transition: color 0.3s ease;
+        position: relative;
+    }
+
+    form label i {
+        color: #8b2c2c;
+        margin-right: 8px;
+        transition: transform 0.3s ease;
+    }
+
+    form label:hover i {
+        transform: scale(1.1);
+    }
+
+    /* Input & Select */
+    form input, 
+    form select, 
+    form textarea {
+        width: 100%;
+        padding: 15px;
+        margin: 5px 0 15px 0;
+        border: 2px solid #e0e0e0;
+        border-radius: 12px;
+        font-size: 14px;
+        transition: all 0.3s ease;
+        background: rgba(255, 255, 255, 0.9);
+        position: relative;
+    }
+
+    form input:focus, 
+    form select:focus, 
+    form textarea:focus {
+        border-color: #8b2c2c;
+        outline: none;
+        transform: translateY(-2px);
+        box-shadow: 0 10px 20px rgba(139, 44, 44, 0.1);
+        background: #fff;
+    }
+
+    form input:hover,
+    form select:hover,
+    form textarea:hover {
+        border-color: #a94442;
+        transform: translateY(-1px);
+    }
+
+    /* Placeholder animation */
+    form input::placeholder,
+    form textarea::placeholder {
+        color: #999;
+        transition: all 0.3s ease;
+    }
+
+    form input:focus::placeholder,
+    form textarea:focus::placeholder {
+        color: #8b2c2c;
+        transform: translateY(-2px);
+    }
+
+    /* Camera Container */
+    .camera-container {
+        border: 2px dashed #e0e0e0;
+        border-radius: 12px;
+        padding: 20px;
+        text-align: center;
+        background: rgba(248, 250, 252, 0.8);
+        margin: 5px 0 15px 0;
+        transition: all 0.3s ease;
+    }
+
+    .camera-container:hover {
+        border-color: #a94442;
+        background: rgba(248, 250, 252, 1);
+    }
+
+    .camera-warning {
+        background: rgba(239, 68, 68, 0.1);
+        border: 1px solid rgba(239, 68, 68, 0.3);
+        color: #dc2626;
+        padding: 15px;
+        border-radius: 8px;
+        margin-bottom: 15px;
+        font-size: 14px;
+    }
+
+    .camera-warning i {
+        margin-right: 8px;
+    }
+
+    #camera {
+        width: 100%;
+        max-width: 400px;
+        border-radius: 8px;
+        margin-bottom: 15px;
+    }
+
+    .photo-preview {
+        min-height: 200px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 15px;
+        border-radius: 8px;
+        overflow: hidden;
+        background: rgba(243, 244, 246, 0.5);
+    }
+
+    .photo-preview img {
+        max-width: 100%;
+        max-height: 300px;
+        border-radius: 8px;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+
+    .camera-placeholder {
+        text-align: center;
+        color: #9ca3af;
+        padding: 40px 20px;
+    }
+
+    .camera-placeholder i {
+        font-size: 48px;
+        margin-bottom: 15px;
+        display: block;
+    }
+
+    .camera-controls {
+        display: flex;
+        gap: 10px;
+        justify-content: center;
+        flex-wrap: wrap;
+    }
+
+    .camera-btn {
+        padding: 10px 20px;
+        background: linear-gradient(135deg, #8b2c2c 0%, #a94442 100%);
+        color: white;
+        border: none;
+        border-radius: 8px;
+        cursor: pointer;
+        font-size: 14px;
+        font-weight: 600;
+        transition: all 0.3s ease;
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .camera-btn:hover {
+        background: linear-gradient(135deg, #a94442 0%, #c55a5a 100%);
+        transform: translateY(-2px);
+        box-shadow: 0 5px 15px rgba(139, 44, 44, 0.3);
+    }
+
+    .camera-btn:active {
+        transform: translateY(0);
+    }
+
+    /* Submit Button */
+    form button[type="submit"] {
+        display: block;
+        width: 100%;
+        padding: 18px;
+        background: linear-gradient(135deg, #8b2c2c 0%, #a94442 100%);
+        color: white;
+        font-size: 18px;
+        font-weight: 600;
+        border: none;
+        border-radius: 15px;
+        cursor: pointer;
+        margin-top: 30px;
+        transition: all 0.3s ease;
+        position: relative;
+        overflow: hidden;
+        letter-spacing: 1px;
+        text-transform: uppercase;
+    }
+
+    form button[type="submit"]::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        left: -100%;
+        width: 100%;
+        height: 100%;
+        background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+        transition: left 0.5s ease;
+    }
+
+    form button[type="submit"]:hover::before {
+        left: 100%;
+    }
+
+    form button[type="submit"]:hover {
+        background: linear-gradient(135deg, #a94442 0%, #c55a5a 100%);
+        transform: translateY(-3px);
+        box-shadow: 0 15px 30px rgba(139, 44, 44, 0.3);
+    }
+
+    form button[type="submit"]:active {
+        transform: translateY(0);
+        box-shadow: 0 5px 15px rgba(139, 44, 44, 0.2);
+    }
+
+    form button[type="submit"] i {
+        margin-right: 10px;
+        transition: transform 0.3s ease;
+    }
+
+    form button[type="submit"]:hover i {
+        transform: translateX(5px);
+    }
+
+    /* Footer */
+    footer {
+        background: linear-gradient(135deg, #8b2c2c 0%, #a94442 100%);
+        color: white;
+        text-align: center;
+        padding: 20px;
+        margin-top: 40px;
+        font-size: 14px;
+        animation: slideUp 1.5s ease-out;
+    }
+
+    /* Loading animation for form elements */
+    .form-group {
+        animation-delay: calc(var(--delay, 0) * 0.1s);
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .form-row {
+            grid-template-columns: 1fr;
+        }
+        
+        .container {
+            margin: 20px;
+            padding: 25px;
+        }
+        
+        header h1 {
+            font-size: 22px;
+        }
+        
+        .container h2 {
+            font-size: 22px;
+        }
+
+        .camera-controls {
+            flex-direction: column;
+            align-items: center;
+        }
+
+        .camera-btn {
+            width: 200px;
+            justify-content: center;
+        }
+    }
+
+    /* Success/Error states */
+    .input-success {
+        border-color: #10b981 !important;
+        background: rgba(16, 185, 129, 0.05);
+    }
+
+    .input-error {
+        border-color: #ef4444 !important;
+        background: rgba(239, 68, 68, 0.05);
+        animation: shake 0.5s ease-in-out;
+    }
+
+    @keyframes shake {
+        0%, 100% { transform: translateX(0); }
+        25% { transform: translateX(-5px); }
+        75% { transform: translateX(5px); }
+    }
+  </style>
+</head>
+<body>
+  <!-- Back Button -->
+  <a href="dashboard.html" class="back-btn">
+    <i class="fas fa-arrow-left"></i>
+    Kembali ke Halaman Utama
+  </a>
+
+  <!-- Header -->
+<header>
+    <h1><i class="fas fa-building animate-pulse"></i> BUKU TAMU UMUM<br>SMKN 13 BANDUNG</h1>
+    <div class="social-icons">
+      <a href="https://www.facebook.com/share/1FhqvT1T2P/"><i class="fab fa-facebook"></i></a>
+     
+      <a href="https://youtube.com/@smkn13bandungofficial?si=Y6pBBdaYOLR9Ls51"><i class="fab fa-youtube"></i></a>
+      <a href="https://www.instagram.com/smkn13bandung?igsh=MTY3aGh3NDF0eno1dQ=="><i class="fab fa-instagram"></i></a>
+    </div>
+  </header>
+
+  <!-- Form Container -->
+  <div class="container">
+    <h2><i class="fas fa-clipboard-list"></i> FORM KUNJUNGAN UMUM</h2>
+    
+    
+     <form action="/admin/tamu/store" method="POST" id="instansiForm">
+      <div class="form-row">
+        <!-- Nama -->
+        <div class="form-group" style="--delay: 1">
+          <label for="nama">
+            <i class="fas fa-user"></i>Nama Lengkap
+          </label>
+          <input type="text" id="nama" name="nama" required placeholder="Masukkan nama lengkap Anda">
+        </div>
+
+      
+      <!-- Identitas -->
+        <div class="form-group" style="--delay: 2">
+          <label for="identitas">
+            <i class="fas fa-building"></i>Identitas
+          </label>
+          <input type="text" id="identitas" name="identitas" required placeholder="Masukkan identitas Anda contoh: Alumni">
+        </div>
+      </div>
+
+        <!-- Keperluan -->
+      <div class="form-group full-width" style="--delay: 3">
+        <label for="keperluan">
+          <i class="fas fa-clipboard"></i>Keperluan
+        </label>
+        <textarea id="keperluan" name="keperluan" required rows="4" placeholder="Jelaskan tujuan kunjungan Anda secara singkat"></textarea>
+      </div>
+
+     <div class="form-row">
+        <!-- Kontak -->
+        <div class="form-group" style="--delay: 4">
+          <label for="kontak">
+            <i class="fas fa-phone"></i>Nomor Kontak
+          </label>
+          <input type="tel" id="kontak" name="kontak" placeholder="Contoh: 08123456789">
+        </div>
+
+      
+
+        <!-- Pilih Guru -->
+        <div class="form-group" style="--delay: 6">
+          <label for="guru">
+            <i class="fas fa-chalkboard-teacher"></i>Guru yang Dituju
+          </label>
+          <select id="guru" name="guru">
+            <option value="">-- Pilih Guru --</option>
+            <option value="A.R Fauzan, S.Ip. M.M">A.R Fauzan, S.Ip. M.M</option>
+            <option value="Ade Hartono, S.Pd">Ade Hartono, S.Pd</option>
+            <option value="Ade Rahmat Nugraha">Ade Rahmat Nugraha</option>
+            <option value="Adiwiguna, S.Pd">Adiwiguna, S.Pd</option>
+            <option value="Ahmad Saripuloh">Ahmad Saripuloh</option>
+            <option value="Anggita Septiani, S.T.P, M.Pd">Anggita Septiani, S.T.P, M.Pd</option>
+            <option value="Annisa Intikarusdiansari, S.Pd.">Annisa Intikarusdiansari, S.Pd.</option>
+            <option value="Apriliani Hardiyanti Hariyono, S.Pd">Apriliani Hardiyanti Hariyono, S.Pd</option>
+            <option value="Ariantonius Sagala, S.Kom">Ariantonius Sagala, S.Kom</option>
+            <option value="Asep Saleh, S.E">Asep Saleh, S.E</option>
+            <option value="Atep Aulia Rahman, S.T. M.Kom">Atep Aulia Rahman, S.T. M.Kom</option>
+            <option value="Cecep Suryana, S.Si">Cecep Suryana, S.Si</option>
+            <option value="Dadan Rukma">Dadan Rukma</option>
+            <option value="Dian Dawan, S.Pd">Dian Dawan, S.Pd</option>
+            <option value="Danty, S.Pd.">Danty, S.Pd.</option>
+            <option value="Dede Saepudin, S.Pd">Dede Saepudin, S.Pd</option>
+            <option value="Dedi Efendi, S.Kom">Dedi Efendi, S.Kom</option>
+            <option value="Dedi Jaenudin">Dedi Jaenudin</option>
+            <option value="Dena Handriana, M.Pd">Dena Handriana, M.Pd</option>
+            <option value="Desta Mulyanti, S.Sn">Desta Mulyanti, S.Sn</option>
+            <option value="Dicky Zulkarnaen">Dicky Zulkarnaen</option>
+            <option value="Dini Karomna, S.Pd">Dini Karomna, S.Pd</option>
+            <option value="Dr. Ermawati, M.Kom">Dr. Ermawati, M.Kom</option>
+            <option value="Dr. Hj. Yani Heryani, M.M.Pd">Dr. Hj. Yani Heryani, M.M.Pd</option>
+            <option value="Dr. Sudarmi, M.Pd">Dr. Sudarmi, M.Pd</option>
+            <option value="Dra. Mimy Ardiany, M.Pd">Dra. Mimy Ardiany, M.Pd</option>
+            <option value="Dra. Rahmi Dalilah Fitrianni">Dra. Rahmi Dalilah Fitrianni</option>
+            <option value="Dra. Weni Asmaraeni">Dra. Weni Asmaraeni</option>
+            <option value="Ela Nurlaela, S.Pd">Ela Nurlaela, S.Pd</option>
+            <option value="Endah Permatasari">Endah Permatasari</option>
+            <option value="Endang Misnam">Endang Misnam</option>
+            <option value="Endang Sunandar, S.Pd., M.Pkim">Endang Sunandar, S.Pd., M.Pkim</option>
+            <option value="Eti Ariesanti, S.Pd">Eti Ariesanti, S.Pd</option>
+            <option value="Eva Zulva, S.Kom,I">Eva Zulva, S.Kom,I</option>
+            <option value="Fahira Armi Ramadhani, S.T">Fahira Armi Ramadhani, S.T</option>
+            <option value="Fertika, S.Pd">Fertika, S.Pd</option>
+            <option value="Gina Urfah Mastur Sadili, S.Pd.">Gina Urfah Mastur Sadili, S.Pd.</option>
+            <option value="Halida Farhani, S.Psi">Halida Farhani, S.Psi</option>
+            <option value="Hasan As'ari, M.Kom">Hasan As'ari, M.Kom</option>
+            <option value="Hazar Nurbani, M.Pd">Hazar Nurbani, M.Pd</option>
+            <option value="Hendra">Hendra</option>
+            <option value="Heni Juhaeni, S.Pd">Heni Juhaeni, S.Pd</option>
+            <option value="Iah Robiah, S.Pd. Kim.">Iah Robiah, S.Pd. Kim.</option>
+            <option value="Ina Marina, S.T">Ina Marina, S.T</option>
+            <option value="Indira Sari Paputungan, M.Ed. Gr">Indira Sari Paputungan, M.Ed. Gr</option>
+            <option value="Indra Adiguna, S.T">Indra Adiguna, S.T</option>
+            <option value="Iwan Setiawan">Iwan Setiawan</option>
+            <option value="Jaya Sumpena, M.Kom">Jaya Sumpena, M.Kom</option>
+            <option value="Kania Dewi Waluya, S.S.T">Kania Dewi Waluya, S.S.T</option>
+            <option value="Kiki Aima Mu'mina, S.Pd">Kiki Aima Mu'mina, S.Pd</option>
+            <option value="Lia Yulianti, M.Pd">Lia Yulianti, M.Pd</option>
+            <option value="Maspuri Andewi, S.Kom">Maspuri Andewi, S.Kom</option>
+            <option value="Maya Kusmayanti, M.Pd">Maya Kusmayanti, M.Pd</option>
+            <option value="Meli Novita, M.M.Pd">Meli Novita, M.M.Pd</option>
+            <option value="Mira Apriyani">Mira Apriyani</option>
+            <option value="Muchamad Harry Ismail, S.T.R.Kom, M.M">Muchamad Harry Ismail, S.T.R.Kom, M.M</option>
+            <option value="Nadia Afriliani, S.Pd">Nadia Afriliani, S.Pd</option>
+            <option value="Neneng Suhartini, S.Si, S.Pd. Gr">Neneng Suhartini, S.Si, S.Pd. Gr</option>
+            <option value="Nina Dewi Koswara, S.Pd">Nina Dewi Koswara, S.Pd</option>
+            <option value="Nofa Nirawati, S.Pd, M.T">Nofa Nirawati, S.Pd, M.T</option>
+            <option value="Nogi Muharam, S.Kom.">Nogi Muharam, S.Kom.</option>
+            <option value="Nur Fauziyah Rahmawati, S.Pd">Nur Fauziyah Rahmawati, S.Pd</option>
+            <option value="Nurlaela, Sh">Nurlaela, Sh</option>
+            <option value="Nurul Diningsih, S.Hum">Nurul Diningsih, S.Hum</option>
+            <option value="Octavina Sopamena, M.Pd">Octavina Sopamena, M.Pd</option>
+            <option value="Odang Supriatna, S.E.">Odang Supriatna, S.E.</option>
+            <option value="Oman Somana, M.Pd">Oman Somana, M.Pd</option>
+            <option value="Popong Wariati, S.Pd">Popong Wariati, S.Pd</option>
+            <option value="Pratiwi, S.S.I">Pratiwi, S.S.I</option>
+            <option value="Priyo Hadisuryo, S.S.T">Priyo Hadisuryo, S.S.T</option>
+            <option value="Rakiman">Rakiman</option>
+            <option value="Rani Rabiussani, M.Pd">Rani Rabiussani, M.Pd</option>
+            <option value="Regina Fitrie, S.Pd">Regina Fitrie, S.Pd</option>
+            <option value="Ricky Valentine">Ricky Valentine</option>
+            <option value="Rina Daryani, M.Pd">Rina Daryani, M.Pd</option>
+            <option value="Rini Dwiwahyuni, S.Pd">Rini Dwiwahyuni, S.Pd</option>
+            <option value="Riska Fitriyanti, A.Md">Riska Fitriyanti, A.Md</option>
+            <option value="Rita Hartati, S.Pd, M.T">Rita Hartati, S.Pd, M.T</option>
+            <option value="Roby Ismail Adi Putra, S.A.P">Roby Ismail Adi Putra, S.A.P</option>
+            <option value="Ruhya, S.Ag, M.M.Pd">Ruhya, S.Ag, M.M.Pd</option>
+            <option value="Rukmana, S.Pd.I">Rukmana, S.Pd.I</option>
+            <option value="Sabila Fauziyya, S.Kom">Sabila Fauziyya, S.Kom</option>
+            <option value="Safitri Insani, S.T.P">Safitri Insani, S.T.P</option>
+            <option value="Samsudin, S.Ag">Samsudin, S.Ag</option>
+            <option value="Santika, M.Pd">Santika, M.Pd</option>
+            <option value="Sarinah Br Ginting, M.Pd">Sarinah Br Ginting, M.Pd</option>
+            <option value="Shendy Antariksa, S.Hum">Shendy Antariksa, S.Hum</option>
+            <option value="Sugiyatmi, S.Si">Sugiyatmi, S.Si</option>
+            <option value="Sukmawidi, S.Pd">Sukmawidi, S.Pd</option>
+            <option value="Syafitri Kurniati Arief, S.Pd, M.T">Syafitri Kurniati Arief, S.Pd, M.T</option>
+            <option value="Taufik Hidayat, M.Pd">Taufik Hidayat, M.Pd</option>
+            <option value="Tessa Eka Yuniar, S.Pd">Tessa Eka Yuniar, S.Pd</option>
+            <option value="Tini Rosmayani, S.Si">Tini Rosmayani, S.Si</option>
+            <option value="Tita Heriyanti, S.Pd">Tita Heriyanti, S.Pd</option>
+            <option value="Tita Lismayanti, S.Pd">Tita Lismayanti, S.Pd</option>
+            <option value="Tiyas Rizkia, S.Li.">Tiyas Rizkia, S.Li.</option>
+            <option value="Tubagus Saputra, M.Pd">Tubagus Saputra, M.Pd</option>
+            <option value="Ujang Suhara, S.Pd">Ujang Suhara, S.Pd</option>
+            <option value="Uli Solihat Kamaluddin, S.Si, Gr">Uli Solihat Kamaluddin, S.Si, Gr</option>
+            <option value="Wanto Kurniawan">Wanto Kurniawan</option>
+            <option value="Windawati Aisah, S.Si, S.Pd">Windawati Aisah, S.Si, S.Pd</option>
+            <option value="Windy Novia Anggraeni, S.Si">Windy Novia Anggraeni, S.Si</option>
+            <option value="Yeni Meilina, S.Pd">Yeni Meilina, S.Pd</option>
+            <option value="Zaka Faishal Hadiyan S, Kom">Zaka Faishal Hadiyan S, Kom</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="form-row">
+        <!-- Waktu -->
+        <div class="form-group" style="--delay: 7">
+          <label for="waktu">
+            <i class="fas fa-clock"></i>Waktu Kunjungan
+          </label>
+          <input type="time" id="waktu" name="waktu" required>
+        </div>
+
+        <!-- Tanggal -->
+        <div class="form-group" style="--delay: 8">
+          <label for="tanggal">
+            <i class="fas fa-calendar"></i>Tanggal Kunjungan
+          </label>
+          <input type="date" id="tanggal" name="tanggal" required>
+        </div>
+      </div>
+
+      <!-- Foto Pengunjung -->
+      <div class="form-group full-width" style="--delay: 9">
+        <label for="foto">
+          <i class="fas fa-camera"></i>Foto Pengunjung
+        </label>
+        <div class="camera-container">
+          <div id="camera-warning" class="camera-warning" style="display: none;">
+            <i class="fas fa-exclamation-triangle"></i>
+            Pastikan browser memiliki akses kamera dan Anda mengizinkan penggunaan kamera.
+          </div>
+          <video id="camera" autoplay playsinline style="display: none;"></video>
+          <canvas id="canvas" style="display: none;"></canvas>
+          <div id="photo-preview" class="photo-preview">
+            <div class="camera-placeholder">
+              <i class="fas fa-user-circle"></i>
+              <p>Klik tombol kamera untuk mengambil foto</p>
+            </div>
+          </div>
+            <div class="camera-controls">
+            <button type="button" id="start-camera" class="camera-btn">
+              <i class="fas fa-camera"></i> Buka Kamera
+            </button>
+            <button type="button" id="take-photo" class="camera-btn" style="display: none;">
+              <i class="fas fa-camera-retro"></i> Ambil Foto
+            </button>
+            <button type="button" id="retake-photo" class="camera-btn" style="display: none;">
+              <i class="fas fa-redo"></i> Foto Ulang
+            </button>
+            <button type="button" id="stop-camera" class="camera-btn" style="display: none;">
+              <i class="fas fa-stop"></i> Tutup Kamera
+            </button>
+          </div>
+        </div>
+        <input type="hidden" id="foto_data" name="foto_data">
+      </div>
+
+      <!-- Submit Button -->
+      <button type="submit" style="--delay: 10">
+        <i class="fas fa-paper-plane"></i>
+        Kirim Data Kunjungan
+      </button>
+    </form>
+  </div>
+
+  <!-- Footer -->
+  <footer>
+    <p><i class="fas fa-school"></i> <strong>SMKN 13 BANDUNG</strong></p>
+    <p>Menjadi sekolah kejuruan yang menghasilkan tamatan kompeten dan berkarakter</p>
+    <p style="margin-top: 10px; font-size: 12px;">Dibuat Oleh Curif | Menggunakan HTML, CSS dan JavaScript</p>
+  </footer>
+
+  <script>
+document.addEventListener('DOMContentLoaded', function() {
+      const dateInput = document.querySelector('#tanggal');
+      const timeInput = document.querySelector('#waktu');
+      
+      const today = new Date();
+      const currentDate = today.toISOString().split('T')[0];
+      const currentTime = today.getHours().toString().padStart(2, '0') + ':' + 
+                         today.getMinutes().toString().padStart(2, '0');
+      
+      dateInput.value = currentDate;
+      timeInput.value = currentTime;
+    });
+
+
+
+    // Camera functionality
+    let cameraStream = null;
+    let cameraStarted = false;
+
+    const camera = document.getElementById('camera');
+    const canvas = document.getElementById('canvas');
+    const photoPreview = document.getElementById('photo-preview');
+    const startCameraBtn = document.getElementById('start-camera');
+    const takePhotoBtn = document.getElementById('take-photo');
+    const retakePhotoBtn = document.getElementById('retake-photo');
+    const stopCameraBtn = document.getElementById('stop-camera');
+    const fotoDataInput = document.getElementById('foto_data');
+    const cameraWarning = document.getElementById('camera-warning');
+
+    // Start camera function
+    async function startCamera() {
+      try {
+        // Show warning initially
+        cameraWarning.style.display = 'block';
+        
+        // Request camera access
+        cameraStream = await navigator.mediaDevices.getUserMedia({
+          video: {
+            width: { ideal: 640 },
+            height: { ideal: 480 },
+            facingMode: 'user' // Front camera for selfie
+          }
+        });
+        
+        // Hide warning on success
+        cameraWarning.style.display = 'none';
+        
+        camera.srcObject = cameraStream;
+        camera.style.display = 'block';
+        
+        // Update button visibility
+        startCameraBtn.style.display = 'none';
+        takePhotoBtn.style.display = 'inline-flex';
+        stopCameraBtn.style.display = 'inline-flex';
+        
+        // Hide placeholder
+        photoPreview.querySelector('.camera-placeholder').style.display = 'none';
+        
+        cameraStarted = true;
+        
+      } catch (error) {
+        console.error('Error accessing camera:', error);
+        
+        // Show detailed error message
+        let errorMessage = 'Tidak dapat mengakses kamera. ';
+        
+        if (error.name === 'NotAllowedError') {
+          errorMessage += 'Silakan izinkan akses kamera di browser Anda.';
+        } else if (error.name === 'NotFoundError') {
+          errorMessage += 'Kamera tidak ditemukan pada perangkat ini.';
+        } else if (error.name === 'NotSupportedError') {
+          errorMessage += 'Browser tidak mendukung akses kamera.';
+        } else {
+          errorMessage += 'Terjadi kesalahan: ' + error.message;
+        }
+        
+        cameraWarning.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${errorMessage}`;
+        cameraWarning.style.display = 'block';
+      }
+    }
+
+    // Take photo function
+    function takePhoto() {
+      if (!cameraStarted || !cameraStream) {
+        alert('Kamera belum dimulai!');
+        return;
+      }
+      
+      // Set canvas dimensions to match video
+      canvas.width = camera.videoWidth;
+      canvas.height = camera.videoHeight;
+      
+      // Draw the video frame to canvas (flip horizontally for selfie mode)
+      const ctx = canvas.getContext('2d');
+      ctx.scale(-1, 1); // Flip horizontally
+      ctx.drawImage(camera, -canvas.width, 0, canvas.width, canvas.height);
+      
+      // Convert to data URL
+      const dataURL = canvas.toDataURL('image/jpeg', 0.8);
+      
+      // Create image element and display
+      const img = document.createElement('img');
+      img.src = dataURL;
+      img.alt = 'Foto Pengunjung';
+      
+      // Clear preview and add image
+      photoPreview.innerHTML = '';
+      photoPreview.appendChild(img);
+      
+      // Store image data
+      fotoDataInput.value = dataURL;
+      
+      // Stop camera and update buttons
+      stopCamera();
+      retakePhotoBtn.style.display = 'inline-flex';
+    }
+
+    // Retake photo function
+    function retakePhoto() {
+      // Clear previous photo
+      photoPreview.innerHTML = '<div class="camera-placeholder"><i class="fas fa-user-circle"></i><p>Klik tombol kamera untuk mengambil foto</p></div>';
+      fotoDataInput.value = '';
+      
+      // Hide retake button and show start camera button
+      retakePhotoBtn.style.display = 'none';
+      startCameraBtn.style.display = 'inline-flex';
+    }
+
+    // Stop camera function
+    function stopCamera() {
+      if (cameraStream) {
+        cameraStream.getTracks().forEach(track => track.stop());
+        cameraStream = null;
+      }
+      
+      camera.style.display = 'none';
+      camera.srcObject = null;
+      
+      // Update button visibility
+      startCameraBtn.style.display = 'inline-flex';
+      takePhotoBtn.style.display = 'none';
+      stopCameraBtn.style.display = 'none';
+      
+      cameraStarted = false;
+    }
+
+    // Event listeners for camera buttons
+    startCameraBtn.addEventListener('click', startCamera);
+    takePhotoBtn.addEventListener('click', takePhoto);
+    retakePhotoBtn.addEventListener('click', retakePhoto);
+    stopCameraBtn.addEventListener('click', stopCamera);
+
+    // Form validation and submission
+    const form = document.getElementById('instansiForm');
+    const inputs = form.querySelectorAll('input, select, textarea');
+
+    // Add input validation effects
+    inputs.forEach(input => {
+      input.addEventListener('blur', function() {
+        if (this.hasAttribute('required') && !this.value.trim()) {
+          this.classList.add('input-error');
+          this.classList.remove('input-success');
+        } else if (this.value.trim()) {
+          this.classList.add('input-success');
+          this.classList.remove('input-error');
+        }
+      });
+
+      input.addEventListener('focus', function() {
+        this.classList.remove('input-error', 'input-success');
+      });
+    });
+
+    // Phone number formatting
+    const kontakInput = document.getElementById('kontak');
+    kontakInput.addEventListener('input', function(e) {
+      let value = e.target.value.replace(/\D/g, '');
+      if (value.length > 0) {
+        if (value.startsWith('0')) {
+          value = '0' + value.slice(1).replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3');
+        } else if (value.startsWith('62')) {
+          value = '+62' + value.slice(2).replace(/(\d{3})(\d{4})(\d{4})/, '$1-$2-$3');
+        }
+      }
+      e.target.value = value;
+    });
+
+    // Set minimum date to today
+    const tanggalInput = document.getElementById('tanggal');
+    const today = new Date().toISOString().split('T')[0];
+    tanggalInput.min = today;
+
+    // Form submission handler
+    form.addEventListener('submit', function(e) {
+      e.preventDefault();
+      
+      // Check required fields
+      let isValid = true;
+      const requiredFields = form.querySelectorAll('[required]');
+      
+      requiredFields.forEach(field => {
+        if (!field.value.trim()) {
+          field.classList.add('input-error');
+          isValid = false;
+        }
+      });
+
+      if (!isValid) {
+        alert('Mohon lengkapi semua field yang wajib diisi!');
+        return;
+      }
+
+      // Show loading state
+      const submitBtn = form.querySelector('button[type="submit"]');
+      const originalText = submitBtn.innerHTML;
+      submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mengirim Data...';
+      submitBtn.disabled = true;
+
+      // Simulate form submission (replace with actual submission)
+      setTimeout(() => {
+        alert('Data kunjungan berhasil dikirim! Terima kasih atas kunjungan Anda.');
+        
+        // Reset form
+        form.reset();
+        
+        // Clear photo
+        if (fotoDataInput.value) {
+          retakePhoto();
+        }
+        
+        // Reset button
+        submitBtn.innerHTML = originalText;
+        submitBtn.disabled = false;
+        
+        // Remove validation classes
+        inputs.forEach(input => {
+          input.classList.remove('input-success', 'input-error');
+        });
+        
+      }, 2000);
+    });
+
+    // Auto-resize textarea
+    const textareas = document.querySelectorAll('textarea');
+    textareas.forEach(textarea => {
+      textarea.addEventListener('input', function() {
+        this.style.height = 'auto';
+        this.style.height = (this.scrollHeight) + 'px';
+      });
+    });
+
+    // Smooth scroll for better UX
+    document.querySelectorAll('a[href^="#"]').forEach(anchor => {
+      anchor.addEventListener('click', function (e) {
+        e.preventDefault();
+        const target = document.querySelector(this.getAttribute('href'));
+        if (target) {
+          target.scrollIntoView({
+            behavior: 'smooth',
+            block: 'start'
+          });
+        }
+      });
+    });
+
+    // Clean up camera stream when page unloads
+    window.addEventListener('beforeunload', function() {
+      if (cameraStream) {
+        cameraStream.getTracks().forEach(track => track.stop());
+      }
+    });
+
+    // Initialize form animations on page load
+    window.addEventListener('load', function() {
+      const formGroups = document.querySelectorAll('.form-group');
+      formGroups.forEach((group, index) => {
+        setTimeout(() => {
+          group.style.opacity = '1';
+          group.style.transform = 'translateX(0)';
+        }, index * 100);
+      });
+    });
+  </script>
+</body>
+</html>
