@@ -40,8 +40,8 @@ Route::prefix('tamu')->group(function () {
 | 👥 Form Registrasi User (Publik)
 |--------------------------------------------------------------------------
 */
-Route::get('/user/form', [UserController::class, 'create'])->name('user.form');
-Route::post('/user/store', [UserController::class, 'store'])->name('user.store');
+// Route::get('/user/form', [UserController::class, 'create'])->name('user.form');
+// Route::post('/user/store', [UserController::class, 'store'])->name('user.store');
 
 /*
 |--------------------------------------------------------------------------
@@ -59,8 +59,8 @@ Route::middleware('guest')->group(function () {
     Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [LoginController::class, 'login']);
 
-    Route::get('/register', [LoginController::class, 'showRegistrationForm'])->name('register');
-    Route::post('/register', [LoginController::class, 'register']);
+    // Route::get('/register', [LoginController::class, 'showRegistrationForm'])->name('register');
+    // Route::post('/register', [LoginController::class, 'register']);
 });
 
 // Dashboard utama

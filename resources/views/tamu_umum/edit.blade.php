@@ -83,15 +83,16 @@
 
                     <!-- Guru Dituju -->
                     <div>
-                        <label class="block text-sm font-medium text-gray-700 mb-2">
-                            Guru Yang Dituju <span class="text-red-500">*</span>
+                        <label for="guru_dituju" class="block text-sm font-medium text-gray-700 mb-2">
+                            Guru yang Dituju
                         </label>
-                        <input type="text"
-                               name="guru_dituju"
-                               value="{{ old('guru_dituju', $tamu_umum->guru_dituju) }}"
-                               placeholder="Contoh: X IPA 1"
-                               class="w-full px-4 py-3 border border-gray-300 rounded-md"
-                               required>
+                        <select id="guru_dituju" name="guru_dituju" required
+                            class="w-full px-4 py-3 border border-gray-300 rounded-md text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+                            <option value="">-- Pilih Guru --</option>
+                            @foreach($gurus as $guru)
+                                <option value="{{ $guru }}">{{ $guru }}</option>
+                            @endforeach
+                        </select>
                     </div>
 
                     <!-- Waktu Kunjungan -->

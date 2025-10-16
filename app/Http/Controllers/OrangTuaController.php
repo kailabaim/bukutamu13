@@ -91,7 +91,8 @@ class OrangTuaController extends Controller
 
     public function edit(OrangTua $ortu)
     {
-        return view('ortu.edit', compact('ortu'));
+        $gurus = \App\Models\Guru::orderBy('guru_nama', 'asc')->pluck('guru_nama');
+        return view('ortu.edit', compact('ortu', 'gurus'));
     }
 
     public function update(Request $request, OrangTua $ortu)

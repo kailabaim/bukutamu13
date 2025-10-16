@@ -105,7 +105,8 @@ class TamuUmumController extends Controller
 
     public function edit(TamuUmum $tamu_umum)
     {
-        return view('tamu_umum.edit', compact('tamu_umum'));
+        $gurus = \App\Models\Guru::orderBy('guru_nama', 'asc')->pluck('guru_nama');
+        return view('tamu_umum.edit', compact('tamu_umum','gurus'));
     }
 
     public function update(Request $request, TamuUmum $tamu_umum)

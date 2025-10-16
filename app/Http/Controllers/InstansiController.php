@@ -110,7 +110,8 @@ class InstansiController extends Controller
      */
     public function edit(Instansi $instansi)
     {
-        return view('instansi.edit', compact('instansi'));
+        $gurus = \App\Models\Guru::orderBy('guru_nama', 'asc')->pluck('guru_nama');
+        return view('instansi.edit', compact('instansi','gurus'));
     }
 
     /**
