@@ -141,6 +141,6 @@
     <p style="margin-top:10px;font-size:12px;">Dibuat Oleh Curi | Menggunakan HTML, CSS dan JavaScript</p>
   </footer>
 
-  <script src="{{ asset('assets/js/script.js') }}"></script>
+<script src="/assets/js/script.js"></script>
 </body>
 </html>
