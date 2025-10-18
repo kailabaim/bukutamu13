@@ -27,7 +27,7 @@
     "outputDirectory": "public",
     "env": {
         "APP_ENV": "production",
-        "APP_DEBUG": "false",
+        "APP_DEBUG": "true",
         "APP_URL": "https://bukutamu13.vercel.app",
         "APP_KEY": "base64:BxAXOyjaW37/aAEXAS0RzSSw8/tutE3IBXKCm6BOgU4=",
         "APP_CONFIG_CACHE": "/tmp/config.php",
