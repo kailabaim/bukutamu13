@@ -25,19 +25,6 @@ document.addEventListener('DOMContentLoaded', function () {
     const fotoDataInput = document.getElementById('foto_data');
     const cameraWarning = document.getElementById('camera-warning');
 
-    // Debugging: Cek apakah semua elemen ditemukan
-    console.log('Camera elements check:', {
-        camera: !!camera,
-        canvas: !!canvas,
-        photoPreview: !!photoPreview,
-        startCameraBtn: !!startCameraBtn,
-        takePhotoBtn: !!takePhotoBtn,
-        retakePhotoBtn: !!retakePhotoBtn,
-        stopCameraBtn: !!stopCameraBtn,
-        fotoDataInput: !!fotoDataInput,
-        cameraWarning: !!cameraWarning
-    });
-
     async function startCamera() {
         console.log('startCamera function called');
 
@@ -78,7 +65,6 @@ document.addEventListener('DOMContentLoaded', function () {
                 camera.style.display = 'block';
                 camera.style.transform = 'scaleX(-1)';
                 
-                // Tunggu video siap diputar
                 camera.onloadedmetadata = () => {
                     console.log('Camera video loaded');
                     camera.play();
@@ -99,8 +85,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
         } catch (error) {
             console.error('Error accessing camera:', error);
-            console.error('Error name:', error.name);
-            console.error('Error message:', error.message);
 
             let msg = 'Tidak dapat mengakses kamera. ';
             
@@ -131,13 +115,6 @@ document.addEventListener('DOMContentLoaded', function () {
         console.log('takePhoto function called');
 
         if (!cameraStarted || !camera || !canvas || !photoPreview || !fotoDataInput) {
-            console.error('Camera not ready:', {
-                cameraStarted,
-                camera: !!camera,
-                canvas: !!canvas,
-                photoPreview: !!photoPreview,
-                fotoDataInput: !!fotoDataInput
-            });
             alert('Kamera belum siap! Pastikan kamera sudah aktif.');
             return;
         }
@@ -145,8 +122,6 @@ document.addEventListener('DOMContentLoaded', function () {
         try {
             canvas.width = camera.videoWidth;
             canvas.height = camera.videoHeight;
-            
-            console.log('Canvas size:', canvas.width, 'x', canvas.height);
 
             const ctx = canvas.getContext('2d');
             ctx.setTransform(-1, 0, 0, 1, canvas.width, 0);
@@ -154,7 +129,7 @@ document.addEventListener('DOMContentLoaded', function () {
             ctx.setTransform(1, 0, 0, 1, 0, 0);
 
             const dataURL = canvas.toDataURL('image/jpeg', 0.8);
-            console.log('Photo captured, data length:', dataURL.length);
+            console.log('Photo captured');
 
             const img = document.createElement('img');
             img.src = dataURL;
@@ -167,8 +142,6 @@ document.addEventListener('DOMContentLoaded', function () {
 
             stopCamera();
             if (retakePhotoBtn) retakePhotoBtn.style.display = 'inline-flex';
-            
-            console.log('Photo taken successfully');
 
         } catch (error) {
             console.error('Error taking photo:', error);
@@ -177,30 +150,18 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     function retakePhoto() {
-        console.log('retakePhoto function called');
-
-        if (!photoPreview || !fotoDataInput || !startCameraBtn || !retakePhotoBtn) {
-            console.error('Missing elements for retake');
-            return;
-        }
+        if (!photoPreview || !fotoDataInput || !startCameraBtn || !retakePhotoBtn) return;
 
         photoPreview.innerHTML =
             '<div class="camera-placeholder"><i class="fas fa-user-circle"></i><p>Klik tombol kamera untuk mengambil foto</p></div>';
         fotoDataInput.value = '';
         retakePhotoBtn.style.display = 'none';
         startCameraBtn.style.display = 'inline-flex';
-        
-        console.log('Photo reset');
     }
 
     function stopCamera() {
-        console.log('stopCamera function called');
-
         if (cameraStream) {
-            cameraStream.getTracks().forEach(track => {
-                console.log('Stopping track:', track.kind);
-                track.stop();
-            });
+            cameraStream.getTracks().forEach(track => track.stop());
             cameraStream = null;
         }
 
@@ -215,19 +176,14 @@ document.addEventListener('DOMContentLoaded', function () {
         if (stopCameraBtn) stopCameraBtn.style.display = 'none';
         
         cameraStarted = false;
-        console.log('Camera stopped');
     }
 
     // Pasang event listener kamera
     if (startCameraBtn) {
-        console.log('Attaching click event to start camera button');
         startCameraBtn.addEventListener('click', function(e) {
-            console.log('Start camera button clicked');
             e.preventDefault();
             startCamera();
         });
-    } else {
-        console.error('Start camera button not found!');
     }
 
     if (takePhotoBtn) {
@@ -251,7 +207,7 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // === SUBMIT FORM DENGAN AJAX ===
+    // === SUBMIT FORM DENGAN AJAX - FIXED VERSION ===
     const formIds = ['umumForm', 'ortuForm', 'instansiForm'];
     formIds.forEach(formId => {
         const form = document.getElementById(formId);
@@ -259,6 +215,8 @@ document.addEventListener('DOMContentLoaded', function () {
 
         form.addEventListener('submit', function (e) {
             e.preventDefault();
+
+            console.log('Form submit triggered:', formId);
 
             // Reset error styling
             form.querySelectorAll('.input-error').forEach(el => el.classList.remove('input-error'));
@@ -286,32 +244,83 @@ document.addEventListener('DOMContentLoaded', function () {
             submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mengirim Data...';
             submitBtn.disabled = true;
 
-            // Kirim via AJAX
+            // Ambil CSRF token
+            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ||
+                              document.querySelector('input[name="_token"]')?.value;
+
+            console.log('CSRF Token:', csrfToken ? 'Found' : 'NOT FOUND');
+            console.log('Form Action:', form.action);
+
+            // Kirim via AJAX dengan error handling yang lebih baik
             const formData = new FormData(form);
+            
+            // Debug: Log form data
+            console.log('Form Data:');
+            for (let pair of formData.entries()) {
+                if (pair[0] === 'foto_data') {
+                    console.log(pair[0] + ': [Base64 Image Data]');
+                } else {
+                    console.log(pair[0] + ': ' + pair[1]);
+                }
+            }
+
             fetch(form.action, {
                 method: 'POST',
                 headers: {
                     'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ||
-                        document.querySelector('input[name="_token"]')?.value
+                    'X-CSRF-TOKEN': csrfToken || '',
+                    'Accept': 'application/json',
                 },
                 body: formData,
+                credentials: 'same-origin'
             })
             .then(response => {
+                console.log('Response status:', response.status);
+                console.log('Response OK:', response.ok);
+
+                // Cek apakah response adalah JSON
+                const contentType = response.headers.get('content-type');
+                console.log('Content-Type:', contentType);
+
                 if (!response.ok) {
-                    return response.json().then(err => { throw err; });
+                    // Jika error, coba baca response sebagai text dulu
+                    return response.text().then(text => {
+                        console.error('Error response text:', text);
+                        
+                        // Coba parse sebagai JSON
+                        try {
+                            const json = JSON.parse(text);
+                            throw json;
+                        } catch (e) {
+                            // Jika bukan JSON, throw error dengan info status
+                            throw new Error(`Server error: ${response.status} ${response.statusText}`);
+                        }
+                    });
                 }
+
+                // Response OK, parse JSON
                 return response.json();
             })
             .then(data => {
+                console.log('Success response:', data);
+                
                 submitBtn.innerHTML = originalText;
                 submitBtn.disabled = false;
 
                 if (data.success) {
-                    alert('✅ ' + data.message);
+                    alert('✅ ' + (data.message || 'Data berhasil dikirim!'));
                     form.reset();
                     // Reset kamera
-                    retakePhoto();
+                    if (typeof retakePhoto === 'function') {
+                        retakePhoto();
+                    }
+                    
+                    // Redirect jika ada
+                    if (data.redirect) {
+                        setTimeout(() => {
+                            window.location.href = data.redirect;
+                        }, 1000);
+                    }
                 } else {
                     let errorMsg = data.message || 'Terjadi kesalahan';
                     if (data.errors) {
@@ -326,11 +335,27 @@ document.addEventListener('DOMContentLoaded', function () {
             })
             .catch(error => {
                 console.error('AJAX Error:', error);
+                
                 submitBtn.innerHTML = originalText;
                 submitBtn.disabled = false;
-                let msg = 'Terjadi kesalahan jaringan atau server.';
-                if (error.message) msg = error.message;
-                alert('❌ Gagal mengirim: ' + msg);
+                
+                let msg = 'Terjadi kesalahan saat mengirim data.\n\n';
+                
+                if (error.message) {
+                    msg += 'Detail: ' + error.message;
+                } else if (error.errors) {
+                    msg += 'Errors: ' + JSON.stringify(error.errors);
+                } else {
+                    msg += 'Silakan coba lagi atau hubungi administrator.';
+                }
+                
+                // Tambahan info untuk debugging
+                msg += '\n\nTips:\n';
+                msg += '1. Pastikan koneksi internet stabil\n';
+                msg += '2. Coba refresh halaman (F5)\n';
+                msg += '3. Buka browser console (F12) untuk detail error';
+                
+                alert('❌ ' + msg);
             });
         });
     });
