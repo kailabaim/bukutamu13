@@ -81,7 +81,7 @@
                 </a>
 
                 <div class="d-flex justify-content-between align-items-center">
-                    <a href="{{ route('tamu_umum.create') }}" class="inline-flex items-center px-3 py-1 bg-purple-600 hover:bg-purple-700 text-white rounded-lg">
+                    <a href="{{ route('tamu_umum.create') }}" class="inline-flex items-center px-3 py-1 bg-red-600 hover:bg-red-700 text-white rounded-lg">
                         <i class="fas fa-plus mr-2"></i> Tambah Umum
                     </a>
                 </div>
