@@ -8,103 +8,96 @@ use App\Models\Instansi;
 use App\Models\TamuUmum;
 use Carbon\Carbon;
 use Illuminate\Support\Facades\DB;
-use Illuminate\Support\Facades\Cache;
 
 class DashboardController extends Controller
 {
     public function index()
     {
-        // 🔹 Gunakan cache untuk meringankan query berulang
-        $cacheKey = 'dashboard_data_' . now()->format('YmdH');
-        $data = Cache::remember($cacheKey, 60, function () {
-            $totalOrangtua = OrangTua::count();
-            $totalInstansi = Instansi::count();
-            $totalUmum = TamuUmum::count();
+        // Query langsung tanpa cache (optimized for Vercel serverless)
+        $totalOrangtua = OrangTua::count();
+        $totalInstansi = Instansi::count();
+        $totalUmum = TamuUmum::count();
 
-            $totalTamu = $totalOrangtua + $totalInstansi + $totalUmum;
-            $totalKunjungan = $totalTamu;
+        $totalTamu = $totalOrangtua + $totalInstansi + $totalUmum;
+        $totalKunjungan = $totalTamu;
 
-            // --- Hitung jumlah per bulan (6 bulan terakhir) ---
-            $dataPerBulan = [];
-            $labelsPerBulan = [];
+        // --- Hitung jumlah per bulan (6 bulan terakhir) ---
+        $dataPerBulan = [];
+        $labelsPerBulan = [];
 
-            for ($i = 5; $i >= 0; $i--) {
-                $tanggal = Carbon::now()->subMonths($i);
-                $labelsPerBulan[] = $tanggal->format('M');
+        for ($i = 5; $i >= 0; $i--) {
+            $tanggal = Carbon::now()->subMonths($i);
+            $labelsPerBulan[] = $tanggal->format('M');
 
-                // Gunakan groupBy agar query lebih efisien (daripada 3x count di loop)
-                $countOrtu = OrangTua::whereBetween('tanggal', [
-                    $tanggal->copy()->startOfMonth(),
-                    $tanggal->copy()->endOfMonth()
-                ])->count();
+            $countOrtu = OrangTua::whereBetween('tanggal', [
+                $tanggal->copy()->startOfMonth(),
+                $tanggal->copy()->endOfMonth()
+            ])->count();
 
-                $countInstansi = Instansi::whereBetween('tanggal_kunjungan', [
-                    $tanggal->copy()->startOfMonth(),
-                    $tanggal->copy()->endOfMonth()
-                ])->count();
+            $countInstansi = Instansi::whereBetween('tanggal_kunjungan', [
+                $tanggal->copy()->startOfMonth(),
+                $tanggal->copy()->endOfMonth()
+            ])->count();
 
-                $countUmum = TamuUmum::whereBetween('tanggal_kunjungan', [
-                    $tanggal->copy()->startOfMonth(),
-                    $tanggal->copy()->endOfMonth()
-                ])->count();
+            $countUmum = TamuUmum::whereBetween('tanggal_kunjungan', [
+                $tanggal->copy()->startOfMonth(),
+                $tanggal->copy()->endOfMonth()
+            ])->count();
 
-                $dataPerBulan[] = $countOrtu + $countInstansi + $countUmum;
-            }
+            $dataPerBulan[] = $countOrtu + $countInstansi + $countUmum;
+        }
 
-            // --- Pie chart distribusi tamu ---
-            $chartData = [
-                'labels' => ['Orang Tua', 'Instansi', 'Umum'],
-                'data' => [$totalOrangtua, $totalInstansi, $totalUmum],
-                'colors' => ['#10b981', '#3b82f6', '#f59e0b'],
-            ];
+        // --- Pie chart distribusi tamu ---
+        $chartData = [
+            'labels' => ['Orang Tua', 'Instansi', 'Umum'],
+            'data' => [$totalOrangtua, $totalInstansi, $totalUmum],
+            'colors' => ['#10b981', '#3b82f6', '#f59e0b'],
+        ];
 
-            // --- Tamu terbaru ---
-            $latestOrangTua = OrangTua::select([
-                'nama_orangtua as nama',
-                'tanggal',
-                'keperluan',
-                DB::raw("'Orang Tua' as tipe")
-            ])->latest('tanggal')->limit(3);
+        // --- Tamu terbaru ---
+        $latestOrangTua = OrangTua::select([
+            'nama_orangtua as nama',
+            'tanggal',
+            'keperluan',
+            DB::raw("'Orang Tua' as tipe")
+        ])->latest('tanggal')->limit(3);
 
-            $latestInstansi = Instansi::select([
-                'nama',
-                'tanggal_kunjungan as tanggal',
-                'keperluan',
-                DB::raw("'Instansi' as tipe")
-            ])->latest('tanggal_kunjungan')->limit(3);
+        $latestInstansi = Instansi::select([
+            'nama',
+            'tanggal_kunjungan as tanggal',
+            'keperluan',
+            DB::raw("'Instansi' as tipe")
+        ])->latest('tanggal_kunjungan')->limit(3);
 
-            $latestUmum = TamuUmum::select([
-                'nama',
-                'tanggal_kunjungan as tanggal',
-                'keperluan',
-                DB::raw("'Umum' as tipe")
-            ])->latest('tanggal_kunjungan')->limit(3);
+        $latestUmum = TamuUmum::select([
+            'nama',
+            'tanggal_kunjungan as tanggal',
+            'keperluan',
+            DB::raw("'Umum' as tipe")
+        ])->latest('tanggal_kunjungan')->limit(3);
 
-            // Union 3 query (masing-masing sudah limit)
-            $combinedSql = $latestOrangTua
-                ->unionAll($latestInstansi)
-                ->unionAll($latestUmum);
+        // Union 3 query (masing-masing sudah limit)
+        $combinedSql = $latestOrangTua
+            ->unionAll($latestInstansi)
+            ->unionAll($latestUmum);
 
-            $latestGuests = DB::table(DB::raw("({$combinedSql->toSql()}) as combined"))
-                ->mergeBindings($latestOrangTua->getQuery())
-                ->orderByDesc('tanggal')
-                ->limit(8)
-                ->get();
+        $latestGuests = DB::table(DB::raw("({$combinedSql->toSql()}) as combined"))
+            ->mergeBindings($latestOrangTua->getQuery())
+            ->orderByDesc('tanggal')
+            ->limit(8)
+            ->get();
 
-            return compact(
-                'totalTamu',
-                'totalKunjungan',
-                'totalOrangtua',
-                'totalInstansi',
-                'totalUmum',
-                'latestGuests',
-                'dataPerBulan',
-                'labelsPerBulan',
-                'chartData'
-            );
-        });
-
-        return view('dashboard', $data);
+        return view('dashboard', compact(
+            'totalTamu',
+            'totalKunjungan',
+            'totalOrangtua',
+            'totalInstansi',
+            'totalUmum',
+            'latestGuests',
+            'dataPerBulan',
+            'labelsPerBulan',
+            'chartData'
+        ));
     }
 
     /**
@@ -136,6 +129,7 @@ class DashboardController extends Controller
 
     /**
      * Event Stream (SSE) - Real-time update
+     * Note: SSE might not work reliably on Vercel serverless
      */
     public function stream(Request $request)
     {
