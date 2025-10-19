@@ -207,15 +207,15 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // === SUBMIT FORM DENGAN AJAX - FIXED VERSION ===
+    // ===================================================
+    // SUBMIT FORM - TANPA AJAX (NORMAL SUBMIT)
+    // ===================================================
     const formIds = ['umumForm', 'ortuForm', 'instansiForm'];
     formIds.forEach(formId => {
         const form = document.getElementById(formId);
         if (!form) return;
 
         form.addEventListener('submit', function (e) {
-            e.preventDefault();
-
             console.log('Form submit triggered:', formId);
 
             // Reset error styling
@@ -228,161 +228,32 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (!field.value.trim()) {
                     field.classList.add('input-error');
                     isValid = false;
+                    console.log('Field kosong:', field.name);
                 }
             });
 
             if (!isValid) {
+                e.preventDefault();
                 alert('Mohon lengkapi semua field yang wajib diisi!');
-                return;
+                return false;
+            }
+
+            // Validasi foto (opsional, bisa dihapus jika foto tidak wajib)
+            const fotoData = document.getElementById('foto_data');
+            if (fotoData && !fotoData.value) {
+                console.warn('Foto tidak diambil');
             }
 
             // Loading button
             const submitBtn = form.querySelector('button[type="submit"]');
-            if (!submitBtn) return;
-
-            const originalText = submitBtn.innerHTML;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mengirim Data...';
-            submitBtn.disabled = true;
-
-            // Ambil CSRF token
-            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ||
-                              document.querySelector('input[name="_token"]')?.value;
-
-            console.log('CSRF Token:', csrfToken ? 'Found' : 'NOT FOUND');
-            console.log('Form Action:', form.action);
-
-            // VALIDASI: Cek apakah form.action valid
-            if (!form.action || form.action === '' || form.action === window.location.href) {
-                console.error('❌ Form action is empty or invalid!');
-                submitBtn.innerHTML = originalText;
-                submitBtn.disabled = false;
-                
-                alert('❌ Error: URL tujuan tidak ditemukan.\n\nKemungkinan:\n1. Attribute action di form kosong\n2. Route Laravel belum dibuat\n\nGunakan submit normal saja?');
-                
-                // Fallback: Submit tanpa AJAX
-                form.removeEventListener('submit', arguments.callee);
-                form.submit();
-                return;
+            if (submitBtn) {
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mengirim Data...';
+                submitBtn.disabled = true;
             }
 
-            // Kirim via AJAX dengan error handling yang lebih baik
-            const formData = new FormData(form);
-            
-            // Debug: Log form data
-            console.log('Form Data:');
-            for (let pair of formData.entries()) {
-                if (pair[0] === 'foto_data') {
-                    console.log(pair[0] + ': [Base64 Image Data - ' + (pair[1].length / 1024).toFixed(2) + ' KB]');
-                } else {
-                    console.log(pair[0] + ': ' + pair[1]);
-                }
-            }
-
-            console.log('Sending AJAX request to:', form.action);
-
-            fetch(form.action, {
-                method: 'POST',
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRF-TOKEN': csrfToken || '',
-                    'Accept': 'application/json',
-                },
-                body: formData,
-                credentials: 'same-origin'
-            })
-            .then(response => {
-                console.log('✅ Response received!');
-                console.log('Response status:', response.status);
-                console.log('Response OK:', response.ok);
-                console.log('Response URL:', response.url);
-
-                // Cek apakah response adalah JSON
-                const contentType = response.headers.get('content-type');
-                console.log('Content-Type:', contentType);
-
-                if (!response.ok) {
-                    // Jika error, coba baca response sebagai text dulu
-                    return response.text().then(text => {
-                        console.error('❌ Error response text:', text);
-                        
-                        // Coba parse sebagai JSON
-                        try {
-                            const json = JSON.parse(text);
-                            throw json;
-                        } catch (e) {
-                            // Jika bukan JSON, throw error dengan info status
-                            throw new Error(`Server error: ${response.status} ${response.statusText}`);
-                        }
-                    });
-                }
-
-                // Response OK, parse JSON
-                return response.json();
-            })
-            .then(data => {
-                console.log('✅ Success response:', data);
-                
-                submitBtn.innerHTML = originalText;
-                submitBtn.disabled = false;
-
-                if (data.success) {
-                    alert('✅ ' + (data.message || 'Data berhasil dikirim!'));
-                    form.reset();
-                    // Reset kamera
-                    retakePhoto();
-                    
-                    // Redirect jika ada
-                    if (data.redirect) {
-                        setTimeout(() => {
-                            window.location.href = data.redirect;
-                        }, 1000);
-                    }
-                } else {
-                    let errorMsg = data.message || 'Terjadi kesalahan';
-                    if (data.errors) {
-                        if (Array.isArray(data.errors)) {
-                            errorMsg = data.errors.join('\n');
-                        } else if (typeof data.errors === 'object') {
-                            errorMsg = Object.values(data.errors).flat().join('\n');
-                        }
-                    }
-                    alert('❌ Gagal mengirim:\n' + errorMsg);
-                }
-            })
-            .catch(error => {
-                console.error('❌ AJAX Error:', error);
-                console.error('Error name:', error.name);
-                console.error('Error message:', error.message);
-                
-                submitBtn.innerHTML = originalText;
-                submitBtn.disabled = false;
-                
-                let msg = 'Terjadi kesalahan saat mengirim data.\n\n';
-                
-                if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
-                    msg += '🔴 Failed to fetch - Kemungkinan:\n';
-                    msg += '1. Server tidak merespons (offline/error)\n';
-                    msg += '2. CORS policy blocking request\n';
-                    msg += '3. Route Laravel tidak ditemukan (404)\n';
-                    msg += '4. Database error (500)\n\n';
-                } else if (error.message) {
-                    msg += 'Detail: ' + error.message + '\n\n';
-                } else if (error.errors) {
-                    msg += 'Errors: ' + JSON.stringify(error.errors) + '\n\n';
-                }
-                
-                msg += '⚠️ Apakah Anda ingin mencoba submit dengan cara lain?\n(Halaman akan refresh setelah submit)';
-                
-                const useNormalSubmit = confirm(msg);
-                
-                if (useNormalSubmit) {
-                    console.log('User chose fallback to normal form submit');
-                    // Hapus event listener untuk prevent default
-                    const newForm = form.cloneNode(true);
-                    form.parentNode.replaceChild(newForm, form);
-                    newForm.submit();
-                }
-            });
+            // Form akan submit secara normal (non-AJAX)
+            console.log('Submitting form normally...');
+            return true;
         });
     });
 
