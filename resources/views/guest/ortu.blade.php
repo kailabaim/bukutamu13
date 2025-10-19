@@ -5,7 +5,7 @@
   <title>Buku Tamu Orang Tua - SMKN 13 Bandung</title>
   <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-<link rel="stylesheet" href="/assets/css/styles.css">
+  <link rel="stylesheet" href="/assets/css/styles.css">
   <meta name="csrf-token" content="{{ csrf_token() }}">
 </head>
 <body>
@@ -22,24 +22,23 @@
   <div class="container">
     <h2><i class="fas fa-clipboard-list"></i> FORM KUNJUNGAN ORANG TUA</h2>
 
-<!-- Alert sukses -->
-@if(session('success'))
-  <div class="alert-success">
-    {{ session('success') }}
-  </div>
-@endif
+    <!-- Alert sukses -->
+    @if(session('success'))
+      <div class="alert-success">
+        {{ session('success') }}
+      </div>
+    @endif
 
-<!-- Alert error validasi -->
-@if($errors->any())
-  <div class="alert-error">
-    <ul>
-      @foreach($errors->all() as $error)
-        <li>{{ $error }}</li>
-      @endforeach
-    </ul>
-  </div>
-@endif
-
+    <!-- Alert error validasi -->
+    @if($errors->any())
+      <div class="alert-error">
+        <ul>
+          @foreach($errors->all() as $error)
+            <li>{{ $error }}</li>
+          @endforeach
+        </ul>
+      </div>
+    @endif
 
     <form action="{{ route('guest.ortu.store') }}" method="POST" enctype="multipart/form-data" id="ortuForm">
       @csrf
@@ -92,21 +91,20 @@
 
       <div class="form-row">
         <div class="form-group">
-            <label><i class="fas fa-clock"></i> Waktu Kunjungan</label>
-            <input type="time" name="waktu_kunjungan" required readonly value="{{ now()->format('H:i') }}">
+          <label><i class="fas fa-clock"></i> Waktu Kunjungan</label>
+          <input type="time" name="waktu_kunjungan" required readonly value="{{ now()->format('H:i') }}">
         </div>
 
         <div class="form-group">
-            <label><i class="fas fa-calendar"></i> Tanggal Kunjungan</label>
-            <input type="date" name="tanggal" required readonly value="{{ now()->toDateString() }}">
+          <label><i class="fas fa-calendar"></i> Tanggal Kunjungan</label>
+          <input type="date" name="tanggal" required readonly value="{{ now()->toDateString() }}">
         </div>
-    </div>
+      </div>
 
       <div class="form-group full-width">
-        <label><i class="fas fa-camera"></i> Foto Pengunjung</label>
+        <label><i class="fas fa-camera"></i> Foto Pengunjung (Opsional)</label>
 
         <div class="camera-container">
-          <!-- 🟢 Tambahan penting untuk peringatan kamera -->
           <div id="camera-warning" class="camera-warning" style="display:none;">
             <i class="fas fa-exclamation-triangle"></i>
             Pastikan browser memiliki akses kamera dan Anda mengizinkannya.
@@ -143,6 +141,6 @@
     <p>Menjadi sekolah kejuruan yang menghasilkan tamatan kompeten dan berkarakter</p>
   </footer>
 
-<script src="/assets/js/script.js"></script>
+  <script src="/assets/js/script.js"></script>
 </body>
 </html>
