@@ -68,7 +68,7 @@ class InstansiController extends Controller
     }
 
     /**
-     * Form tambah instansi (untuk guest - dari landing page).
+     * Form tambah instansi (untuk ADMIN).
      */
     public function create()
     {
@@ -77,8 +77,9 @@ class InstansiController extends Controller
     }
 
     /**
-     * Simpan data baru dari guest (FORM PUBLIK).
-     * ✅ SUPPORT BASE64 IMAGE dari JavaScript Camera
+     * Simpan data baru - SUPPORT 2 CARA:
+     * 1. BASE64 dari camera (form guest)
+     * 2. FILE UPLOAD biasa (form admin)
      */
     public function store(Request $request)
     {
@@ -88,11 +89,15 @@ class InstansiController extends Controller
             'instansi_asal'  => 'required|string|max:255',
             'keperluan'      => 'required|string',
             'kontak'         => 'nullable|string|max:20',
-            'guru'           => 'required|string|max:255', // ← Dari form: name="guru"
+            'guru'           => 'nullable|string|max:255', // ← Dari form GUEST (name="guru")
+            'guru_dituju'    => 'nullable|string|max:255', // ← Dari form ADMIN (name="guru_dituju")
             'jumlah_peserta' => 'required|integer|min:1',
-            'tanggal'        => 'nullable|date',
-            'waktu'          => 'nullable|date_format:H:i',
-            'foto_data'      => 'nullable|string', // ← BASE64 string dari JS
+            'tanggal'        => 'nullable|date',          // ← Form GUEST
+            'waktu'          => 'nullable|date_format:H:i', // ← Form GUEST
+            'tanggal_kunjungan' => 'nullable|date',       // ← Form ADMIN
+            'waktu_kunjungan'   => 'nullable|date_format:H:i', // ← Form ADMIN
+            'foto_data'      => 'nullable|string',        // ← BASE64 dari camera (form guest)
+            'foto'           => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // ← FILE UPLOAD (form admin)
         ]);
 
         // Persiapkan data untuk disimpan
@@ -101,15 +106,32 @@ class InstansiController extends Controller
             'instansi_asal'     => $validated['instansi_asal'],
             'keperluan'         => $validated['keperluan'],
             'kontak'            => $validated['kontak'] ?? null,
-            'guru_dituju'       => $validated['guru'], // ← Mapping ke kolom database
+            // ✅ Handle guru_dituju dari 2 form berbeda
+            'guru_dituju'       => $validated['guru_dituju'] ?? $validated['guru'] ?? null,
             'jumlah_peserta'    => $validated['jumlah_peserta'],
-            'tanggal_kunjungan' => $validated['tanggal'] ?? now()->toDateString(),
-            'waktu_kunjungan'   => $validated['waktu'] ?? now()->format('H:i'),
+            // ✅ Handle tanggal/waktu dari 2 form berbeda
+            'tanggal_kunjungan' => $validated['tanggal_kunjungan'] ?? $validated['tanggal'] ?? now()->toDateString(),
+            'waktu_kunjungan'   => $validated['waktu_kunjungan'] ?? $validated['waktu'] ?? now()->format('H:i'),
             'foto'              => null,
         ];
 
-        // ✅ HANDLE BASE64 IMAGE dari JavaScript Camera
-        if (!empty($validated['foto_data'])) {
+        // ============================================
+        // HANDLE FOTO - 2 CARA:
+        // ============================================
+        
+        // 1️⃣ CARA 1: FILE UPLOAD BIASA (dari form admin)
+        if ($request->hasFile('foto')) {
+            try {
+                $path = $request->file('foto')->store('instansi', 'public');
+                $data['foto'] = '/storage/' . $path;
+                Log::info('✅ Foto berhasil diupload (file upload): ' . $data['foto']);
+            } catch (\Exception $e) {
+                Log::error('❌ Error upload foto: ' . $e->getMessage());
+            }
+        }
+        
+        // 2️⃣ CARA 2: BASE64 dari JavaScript Camera (dari form guest)
+        elseif (!empty($validated['foto_data'])) {
             try {
                 $base64String = $validated['foto_data'];
                 
@@ -152,18 +174,18 @@ class InstansiController extends Controller
                     // Path untuk database (akan diakses via /storage/instansi/...)
                     $data['foto'] = '/storage/instansi/' . $fileName;
                     
-                    Log::info('✅ Foto instansi berhasil disimpan: ' . $data['foto'] . ' (' . round($fileSize / 1024) . ' KB)');
+                    Log::info('✅ Foto berhasil disimpan (base64): ' . $data['foto'] . ' (' . round($fileSize / 1024) . ' KB)');
                     
                 } else {
                     Log::warning('⚠️ Format base64 tidak valid, tidak ada header data:image');
                 }
                 
             } catch (\Exception $e) {
-                Log::error('❌ Error menyimpan foto instansi: ' . $e->getMessage());
+                Log::error('❌ Error menyimpan foto base64: ' . $e->getMessage());
                 // Tidak return error, lanjutkan tanpa foto
             }
         } else {
-            Log::info('ℹ️ Tidak ada foto yang dikirim (foto_data kosong)');
+            Log::info('ℹ️ Tidak ada foto yang dikirim');
         }
 
         // Simpan ke database
@@ -171,7 +193,14 @@ class InstansiController extends Controller
 
         Log::info('✅ Data instansi berhasil disimpan: ' . $validated['nama']);
 
-        return redirect()->route('landing')->with('success', '✅ Data kunjungan instansi berhasil disimpan! Terima kasih.');
+        // Redirect berdasarkan dari mana form disubmit
+        if ($request->has('foto_data')) {
+            // Dari form guest (dengan camera)
+            return redirect()->route('landing')->with('success', '✅ Data kunjungan instansi berhasil disimpan! Terima kasih.');
+        } else {
+            // Dari form admin
+            return redirect()->route('instansi.index')->with('success', '✅ Data instansi berhasil ditambahkan!');
+        }
     }
 
     /**
@@ -185,7 +214,6 @@ class InstansiController extends Controller
 
     /**
      * Update data instansi (untuk admin).
-     * ✅ SUPPORT FILE UPLOAD biasa (bukan base64)
      */
     public function update(Request $request, Instansi $instansi)
     {
@@ -198,7 +226,7 @@ class InstansiController extends Controller
             'jumlah_peserta'    => 'required|integer|min:1',
             'waktu_kunjungan'   => 'required|date_format:H:i',
             'tanggal_kunjungan' => 'required|date',
-            'foto'              => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048', // File upload biasa
+            'foto'              => 'nullable|image|mimes:jpeg,png,jpg,gif|max:2048',
         ]);
 
         // Jika ada upload foto baru
