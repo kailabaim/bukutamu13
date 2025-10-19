@@ -1,6 +1,15 @@
 document.addEventListener('DOMContentLoaded', function () {
     console.log('Script loaded successfully');
 
+    // ============================================
+    // FORCE HTTPS - Prevent Mixed Content Error
+    // ============================================
+    if (location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+        console.warn('Redirecting to HTTPS...');
+        location.replace(`https:${location.href.substring(location.protocol.length)}`);
+        return;
+    }
+
     // === Set tanggal & waktu default ===
     const dateInput = document.querySelector('#tanggal, #tanggal_kunjungan');
     const timeInput = document.querySelector('#waktu, #waktu_kunjungan');
@@ -27,6 +36,20 @@ document.addEventListener('DOMContentLoaded', function () {
 
     async function startCamera() {
         console.log('startCamera function called');
+
+        // Check HTTPS requirement for camera
+        if (location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
+            const errorMsg = 'Kamera hanya dapat diakses melalui HTTPS. Halaman akan dimuat ulang dengan HTTPS.';
+            console.error(errorMsg);
+            if (cameraWarning) {
+                cameraWarning.innerHTML = `<i class="fas fa-exclamation-triangle"></i> ${errorMsg}`;
+                cameraWarning.style.display = 'block';
+            }
+            setTimeout(() => {
+                location.replace(`https:${location.href.substring(location.protocol.length)}`);
+            }, 2000);
+            return;
+        }
 
         if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
             const errorMsg = 'Browser Anda tidak mendukung akses kamera. Gunakan browser modern seperti Chrome, Firefox, atau Edge.';
@@ -129,7 +152,7 @@ document.addEventListener('DOMContentLoaded', function () {
             ctx.setTransform(1, 0, 0, 1, 0, 0);
 
             const dataURL = canvas.toDataURL('image/jpeg', 0.8);
-            console.log('Photo captured');
+            console.log('Photo captured, size:', Math.round(dataURL.length / 1024), 'KB');
 
             const img = document.createElement('img');
             img.src = dataURL;
@@ -218,6 +241,12 @@ document.addEventListener('DOMContentLoaded', function () {
         form.addEventListener('submit', function (e) {
             console.log('Form submit triggered:', formId);
 
+            // Pastikan form action menggunakan HTTPS atau relative URL
+            if (form.action && form.action.startsWith('http://')) {
+                console.warn('Converting form action to HTTPS');
+                form.action = form.action.replace('http://', 'https://');
+            }
+
             // Reset error styling
             form.querySelectorAll('.input-error').forEach(el => el.classList.remove('input-error'));
 
@@ -260,16 +289,24 @@ document.addEventListener('DOMContentLoaded', function () {
             // Loading button - disabled agar tidak double submit
             const submitBtn = form.querySelector('button[type="submit"]');
             if (submitBtn) {
+                const originalHTML = submitBtn.innerHTML;
                 submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mengirim Data...';
                 submitBtn.disabled = true;
                 
-                // Prevent double submit
-                form.addEventListener('submit', (e) => e.preventDefault(), { once: true });
+                // Restore button jika gagal (timeout 10 detik)
+                setTimeout(() => {
+                    if (submitBtn.disabled) {
+                        submitBtn.innerHTML = originalHTML;
+                        submitBtn.disabled = false;
+                        console.log('Form submission timeout - button restored');
+                    }
+                }, 10000);
             }
 
             // Form akan submit secara normal (non-AJAX) - Lebih stabil di Vercel
             console.log('✅ Validasi passed. Submitting form...');
             console.log('Action URL:', form.action);
+            console.log('Method:', form.method);
             return true;
         });
     });
@@ -288,4 +325,6 @@ document.addEventListener('DOMContentLoaded', function () {
             cameraStream.getTracks().forEach(track => track.stop());
         }
     });
+
+    console.log('✅ All event listeners attached successfully');
 });
