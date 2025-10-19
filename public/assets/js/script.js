@@ -37,6 +37,7 @@ document.addEventListener('DOMContentLoaded', function () {
     async function startCamera() {
         console.log('startCamera function called');
 
+        // Check HTTPS requirement for camera
         if (location.protocol !== 'https:' && location.hostname !== 'localhost' && location.hostname !== '127.0.0.1') {
             const errorMsg = 'Kamera hanya dapat diakses melalui HTTPS. Halaman akan dimuat ulang dengan HTTPS.';
             console.error(errorMsg);
@@ -142,33 +143,16 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         try {
-            // Resize agresif untuk mengurangi ukuran (max 400px width untuk keamanan)
-            const maxWidth = 400;
-            const scale = Math.min(1, maxWidth / camera.videoWidth);
-            
-            canvas.width = camera.videoWidth * scale;
-            canvas.height = camera.videoHeight * scale;
+            canvas.width = camera.videoWidth;
+            canvas.height = camera.videoHeight;
 
             const ctx = canvas.getContext('2d');
             ctx.setTransform(-1, 0, 0, 1, canvas.width, 0);
             ctx.drawImage(camera, 0, 0, canvas.width, canvas.height);
             ctx.setTransform(1, 0, 0, 1, 0, 0);
 
-            // Compress sangat agresif (quality 0.5 untuk ukuran minimal)
-            const dataURL = canvas.toDataURL('image/jpeg', 0.5);
-            const sizeKB = Math.round(dataURL.length / 1024);
-            console.log('Photo captured, size:', sizeKB, 'KB');
-
-            // Jika masih > 300KB, compress lagi
-            if (sizeKB > 300) {
-                console.warn('⚠️ Foto masih besar (', sizeKB, 'KB), compress lebih agresif');
-                const reducedDataURL = canvas.toDataURL('image/jpeg', 0.3);
-                const newSize = Math.round(reducedDataURL.length / 1024);
-                console.log('Compressed to:', newSize, 'KB');
-                fotoDataInput.value = reducedDataURL;
-            } else {
-                fotoDataInput.value = dataURL;
-            }
+            const dataURL = canvas.toDataURL('image/jpeg', 0.8);
+            console.log('Photo captured, size:', Math.round(dataURL.length / 1024), 'KB');
 
             const img = document.createElement('img');
             img.src = dataURL;
@@ -177,6 +161,7 @@ document.addEventListener('DOMContentLoaded', function () {
             
             photoPreview.innerHTML = '';
             photoPreview.appendChild(img);
+            fotoDataInput.value = dataURL;
 
             stopCamera();
             if (retakePhotoBtn) retakePhotoBtn.style.display = 'inline-flex';
@@ -246,7 +231,7 @@ document.addEventListener('DOMContentLoaded', function () {
     }
 
     // ===================================================
-    // SUBMIT FORM - NORMAL SUBMISSION (BUKAN AJAX)
+    // SUBMIT FORM - VALIDASI CLIENT SIDE
     // ===================================================
     const formIds = ['umumForm', 'ortuForm', 'instansiForm'];
     formIds.forEach(formId => {
@@ -255,6 +240,12 @@ document.addEventListener('DOMContentLoaded', function () {
 
         form.addEventListener('submit', function (e) {
             console.log('Form submit triggered:', formId);
+
+            // Pastikan form action menggunakan HTTPS atau relative URL
+            if (form.action && form.action.startsWith('http://')) {
+                console.warn('Converting form action to HTTPS');
+                form.action = form.action.replace('http://', 'https://');
+            }
 
             // Reset error styling
             form.querySelectorAll('.input-error').forEach(el => el.classList.remove('input-error'));
@@ -279,6 +270,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 e.preventDefault();
                 alert('❌ Mohon lengkapi semua field yang wajib diisi!');
                 
+                // Scroll ke field pertama yang error
                 if (firstInvalidField) {
                     firstInvalidField.focus();
                     firstInvalidField.scrollIntoView({ behavior: 'smooth', block: 'center' });
@@ -286,40 +278,32 @@ document.addEventListener('DOMContentLoaded', function () {
                 return false;
             }
 
-            // Validasi foto
+            // Validasi foto (warning saja, tidak wajib)
             const fotoData = document.getElementById('foto_data');
-            if (fotoData && fotoData.value) {
-                const fotoSizeKB = Math.round(fotoData.value.length / 1024);
-                console.log('✅ Foto sudah diambil, ukuran:', fotoSizeKB, 'KB');
-                
-                // CRITICAL: Block jika foto > 500KB untuk prevent header overflow
-                if (fotoSizeKB > 500) {
-                    e.preventDefault();
-                    alert('❌ Ukuran foto terlalu besar (' + fotoSizeKB + ' KB).\n\nSilakan ambil foto ulang atau lanjutkan tanpa foto.');
-                    console.error('❌ Foto terlalu besar! (', fotoSizeKB, 'KB)');
-                    return false;
-                }
-            } else {
+            if (fotoData && !fotoData.value) {
                 console.warn('⚠️ Foto tidak diambil (opsional)');
+            } else {
+                console.log('✅ Foto sudah diambil');
             }
 
-            // Loading button
+            // Loading button - disabled agar tidak double submit
             const submitBtn = form.querySelector('button[type="submit"]');
             if (submitBtn) {
                 const originalHTML = submitBtn.innerHTML;
                 submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mengirim Data...';
                 submitBtn.disabled = true;
                 
-                // Restore button jika gagal (timeout 15 detik)
+                // Restore button jika gagal (timeout 10 detik)
                 setTimeout(() => {
                     if (submitBtn.disabled) {
                         submitBtn.innerHTML = originalHTML;
                         submitBtn.disabled = false;
                         console.log('Form submission timeout - button restored');
                     }
-                }, 15000);
+                }, 10000);
             }
 
+            // Form akan submit secara normal (non-AJAX) - Lebih stabil di Vercel
             console.log('✅ Validasi passed. Submitting form...');
             console.log('Action URL:', form.action);
             console.log('Method:', form.method);
