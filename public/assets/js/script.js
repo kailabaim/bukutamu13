@@ -251,6 +251,20 @@ document.addEventListener('DOMContentLoaded', function () {
             console.log('CSRF Token:', csrfToken ? 'Found' : 'NOT FOUND');
             console.log('Form Action:', form.action);
 
+            // VALIDASI: Cek apakah form.action valid
+            if (!form.action || form.action === '' || form.action === window.location.href) {
+                console.error('❌ Form action is empty or invalid!');
+                submitBtn.innerHTML = originalText;
+                submitBtn.disabled = false;
+                
+                alert('❌ Error: URL tujuan tidak ditemukan.\n\nKemungkinan:\n1. Attribute action di form kosong\n2. Route Laravel belum dibuat\n\nGunakan submit normal saja?');
+                
+                // Fallback: Submit tanpa AJAX
+                form.removeEventListener('submit', arguments.callee);
+                form.submit();
+                return;
+            }
+
             // Kirim via AJAX dengan error handling yang lebih baik
             const formData = new FormData(form);
             
@@ -258,11 +272,13 @@ document.addEventListener('DOMContentLoaded', function () {
             console.log('Form Data:');
             for (let pair of formData.entries()) {
                 if (pair[0] === 'foto_data') {
-                    console.log(pair[0] + ': [Base64 Image Data]');
+                    console.log(pair[0] + ': [Base64 Image Data - ' + (pair[1].length / 1024).toFixed(2) + ' KB]');
                 } else {
                     console.log(pair[0] + ': ' + pair[1]);
                 }
             }
+
+            console.log('Sending AJAX request to:', form.action);
 
             fetch(form.action, {
                 method: 'POST',
@@ -275,8 +291,10 @@ document.addEventListener('DOMContentLoaded', function () {
                 credentials: 'same-origin'
             })
             .then(response => {
+                console.log('✅ Response received!');
                 console.log('Response status:', response.status);
                 console.log('Response OK:', response.ok);
+                console.log('Response URL:', response.url);
 
                 // Cek apakah response adalah JSON
                 const contentType = response.headers.get('content-type');
@@ -285,7 +303,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 if (!response.ok) {
                     // Jika error, coba baca response sebagai text dulu
                     return response.text().then(text => {
-                        console.error('Error response text:', text);
+                        console.error('❌ Error response text:', text);
                         
                         // Coba parse sebagai JSON
                         try {
@@ -302,7 +320,7 @@ document.addEventListener('DOMContentLoaded', function () {
                 return response.json();
             })
             .then(data => {
-                console.log('Success response:', data);
+                console.log('✅ Success response:', data);
                 
                 submitBtn.innerHTML = originalText;
                 submitBtn.disabled = false;
@@ -311,9 +329,7 @@ document.addEventListener('DOMContentLoaded', function () {
                     alert('✅ ' + (data.message || 'Data berhasil dikirim!'));
                     form.reset();
                     // Reset kamera
-                    if (typeof retakePhoto === 'function') {
-                        retakePhoto();
-                    }
+                    retakePhoto();
                     
                     // Redirect jika ada
                     if (data.redirect) {
@@ -334,28 +350,38 @@ document.addEventListener('DOMContentLoaded', function () {
                 }
             })
             .catch(error => {
-                console.error('AJAX Error:', error);
+                console.error('❌ AJAX Error:', error);
+                console.error('Error name:', error.name);
+                console.error('Error message:', error.message);
                 
                 submitBtn.innerHTML = originalText;
                 submitBtn.disabled = false;
                 
                 let msg = 'Terjadi kesalahan saat mengirim data.\n\n';
                 
-                if (error.message) {
-                    msg += 'Detail: ' + error.message;
+                if (error.name === 'TypeError' && error.message.includes('Failed to fetch')) {
+                    msg += '🔴 Failed to fetch - Kemungkinan:\n';
+                    msg += '1. Server tidak merespons (offline/error)\n';
+                    msg += '2. CORS policy blocking request\n';
+                    msg += '3. Route Laravel tidak ditemukan (404)\n';
+                    msg += '4. Database error (500)\n\n';
+                } else if (error.message) {
+                    msg += 'Detail: ' + error.message + '\n\n';
                 } else if (error.errors) {
-                    msg += 'Errors: ' + JSON.stringify(error.errors);
-                } else {
-                    msg += 'Silakan coba lagi atau hubungi administrator.';
+                    msg += 'Errors: ' + JSON.stringify(error.errors) + '\n\n';
                 }
                 
-                // Tambahan info untuk debugging
-                msg += '\n\nTips:\n';
-                msg += '1. Pastikan koneksi internet stabil\n';
-                msg += '2. Coba refresh halaman (F5)\n';
-                msg += '3. Buka browser console (F12) untuk detail error';
+                msg += '⚠️ Apakah Anda ingin mencoba submit dengan cara lain?\n(Halaman akan refresh setelah submit)';
                 
-                alert('❌ ' + msg);
+                const useNormalSubmit = confirm(msg);
+                
+                if (useNormalSubmit) {
+                    console.log('User chose fallback to normal form submit');
+                    // Hapus event listener untuk prevent default
+                    const newForm = form.cloneNode(true);
+                    form.parentNode.replaceChild(newForm, form);
+                    newForm.submit();
+                }
             });
         });
     });
