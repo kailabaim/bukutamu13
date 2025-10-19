@@ -131,6 +131,6 @@
     <p>Menjadi sekolah kejuruan yang menghasilkan tamatan kompeten dan berkarakter</p>
   </footer>
 
-<script src="/assets/js/script.js"></script>
+<script src="{{ secure_asset('assets/js/script.js') }}"></script>
 </body>
 </html>
