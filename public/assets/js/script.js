@@ -207,15 +207,15 @@ document.addEventListener('DOMContentLoaded', function () {
         });
     }
 
-    // === SUBMIT FORM DENGAN AJAX - FIXED VERSION ===
+    // ===================================================
+    // SUBMIT FORM - VALIDASI CLIENT SIDE
+    // ===================================================
     const formIds = ['umumForm', 'ortuForm', 'instansiForm'];
     formIds.forEach(formId => {
         const form = document.getElementById(formId);
         if (!form) return;
 
         form.addEventListener('submit', function (e) {
-            e.preventDefault();
-
             console.log('Form submit triggered:', formId);
 
             // Reset error styling
@@ -223,140 +223,54 @@ document.addEventListener('DOMContentLoaded', function () {
 
             // Validasi field required
             let isValid = true;
+            let firstInvalidField = null;
+            
             const requiredFields = form.querySelectorAll('[required]');
             requiredFields.forEach(field => {
-                if (!field.value.trim()) {
+                const value = field.value ? field.value.trim() : '';
+                
+                if (!value) {
                     field.classList.add('input-error');
                     isValid = false;
+                    if (!firstInvalidField) firstInvalidField = field;
+                    console.log('Field kosong:', field.name);
                 }
             });
 
             if (!isValid) {
-                alert('Mohon lengkapi semua field yang wajib diisi!');
-                return;
+                e.preventDefault();
+                alert('❌ Mohon lengkapi semua field yang wajib diisi!');
+                
+                // Scroll ke field pertama yang error
+                if (firstInvalidField) {
+                    firstInvalidField.focus();
+                    firstInvalidField.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }
+                return false;
             }
 
-            // Loading button
+            // Validasi foto (warning saja, tidak wajib)
+            const fotoData = document.getElementById('foto_data');
+            if (fotoData && !fotoData.value) {
+                console.warn('⚠️ Foto tidak diambil (opsional)');
+            } else {
+                console.log('✅ Foto sudah diambil');
+            }
+
+            // Loading button - disabled agar tidak double submit
             const submitBtn = form.querySelector('button[type="submit"]');
-            if (!submitBtn) return;
-
-            const originalText = submitBtn.innerHTML;
-            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mengirim Data...';
-            submitBtn.disabled = true;
-
-            // Ambil CSRF token
-            const csrfToken = document.querySelector('meta[name="csrf-token"]')?.getAttribute('content') ||
-                              document.querySelector('input[name="_token"]')?.value;
-
-            console.log('CSRF Token:', csrfToken ? 'Found' : 'NOT FOUND');
-            console.log('Form Action:', form.action);
-
-            // Kirim via AJAX dengan error handling yang lebih baik
-            const formData = new FormData(form);
-            
-            // Debug: Log form data
-            console.log('Form Data:');
-            for (let pair of formData.entries()) {
-                if (pair[0] === 'foto_data') {
-                    console.log(pair[0] + ': [Base64 Image Data]');
-                } else {
-                    console.log(pair[0] + ': ' + pair[1]);
-                }
+            if (submitBtn) {
+                submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Mengirim Data...';
+                submitBtn.disabled = true;
+                
+                // Prevent double submit
+                form.addEventListener('submit', (e) => e.preventDefault(), { once: true });
             }
 
-            fetch(form.action, {
-                method: 'POST',
-                headers: {
-                    'X-Requested-With': 'XMLHttpRequest',
-                    'X-CSRF-TOKEN': csrfToken || '',
-                    'Accept': 'application/json',
-                },
-                body: formData,
-                credentials: 'same-origin'
-            })
-            .then(response => {
-                console.log('Response status:', response.status);
-                console.log('Response OK:', response.ok);
-
-                // Cek apakah response adalah JSON
-                const contentType = response.headers.get('content-type');
-                console.log('Content-Type:', contentType);
-
-                if (!response.ok) {
-                    // Jika error, coba baca response sebagai text dulu
-                    return response.text().then(text => {
-                        console.error('Error response text:', text);
-                        
-                        // Coba parse sebagai JSON
-                        try {
-                            const json = JSON.parse(text);
-                            throw json;
-                        } catch (e) {
-                            // Jika bukan JSON, throw error dengan info status
-                            throw new Error(`Server error: ${response.status} ${response.statusText}`);
-                        }
-                    });
-                }
-
-                // Response OK, parse JSON
-                return response.json();
-            })
-            .then(data => {
-                console.log('Success response:', data);
-                
-                submitBtn.innerHTML = originalText;
-                submitBtn.disabled = false;
-
-                if (data.success) {
-                    alert('✅ ' + (data.message || 'Data berhasil dikirim!'));
-                    form.reset();
-                    // Reset kamera
-                    if (typeof retakePhoto === 'function') {
-                        retakePhoto();
-                    }
-                    
-                    // Redirect jika ada
-                    if (data.redirect) {
-                        setTimeout(() => {
-                            window.location.href = data.redirect;
-                        }, 1000);
-                    }
-                } else {
-                    let errorMsg = data.message || 'Terjadi kesalahan';
-                    if (data.errors) {
-                        if (Array.isArray(data.errors)) {
-                            errorMsg = data.errors.join('\n');
-                        } else if (typeof data.errors === 'object') {
-                            errorMsg = Object.values(data.errors).flat().join('\n');
-                        }
-                    }
-                    alert('❌ Gagal mengirim:\n' + errorMsg);
-                }
-            })
-            .catch(error => {
-                console.error('AJAX Error:', error);
-                
-                submitBtn.innerHTML = originalText;
-                submitBtn.disabled = false;
-                
-                let msg = 'Terjadi kesalahan saat mengirim data.\n\n';
-                
-                if (error.message) {
-                    msg += 'Detail: ' + error.message;
-                } else if (error.errors) {
-                    msg += 'Errors: ' + JSON.stringify(error.errors);
-                } else {
-                    msg += 'Silakan coba lagi atau hubungi administrator.';
-                }
-                
-                // Tambahan info untuk debugging
-                msg += '\n\nTips:\n';
-                msg += '1. Pastikan koneksi internet stabil\n';
-                msg += '2. Coba refresh halaman (F5)\n';
-                msg += '3. Buka browser console (F12) untuk detail error';
-                
-                alert('❌ ' + msg);
-            });
+            // Form akan submit secara normal (non-AJAX) - Lebih stabil di Vercel
+            console.log('✅ Validasi passed. Submitting form...');
+            console.log('Action URL:', form.action);
+            return true;
         });
     });
 
