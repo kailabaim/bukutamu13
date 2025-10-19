@@ -143,16 +143,32 @@ document.addEventListener('DOMContentLoaded', function () {
         }
 
         try {
-            canvas.width = camera.videoWidth;
-            canvas.height = camera.videoHeight;
+            // Resize untuk mengurangi ukuran file (max 800px width)
+            const maxWidth = 800;
+            const scale = Math.min(1, maxWidth / camera.videoWidth);
+            
+            canvas.width = camera.videoWidth * scale;
+            canvas.height = camera.videoHeight * scale;
 
             const ctx = canvas.getContext('2d');
             ctx.setTransform(-1, 0, 0, 1, canvas.width, 0);
             ctx.drawImage(camera, 0, 0, canvas.width, canvas.height);
             ctx.setTransform(1, 0, 0, 1, 0, 0);
 
-            const dataURL = canvas.toDataURL('image/jpeg', 0.8);
-            console.log('Photo captured, size:', Math.round(dataURL.length / 1024), 'KB');
+            // Compress JPEG dengan kualitas 0.6 (balance antara kualitas dan ukuran)
+            const dataURL = canvas.toDataURL('image/jpeg', 0.6);
+            const sizeKB = Math.round(dataURL.length / 1024);
+            console.log('Photo captured, size:', sizeKB, 'KB');
+
+            if (sizeKB > 500) {
+                console.warn('⚠️ Foto masih besar (', sizeKB, 'KB), compress lebih lanjut');
+                // Compress ulang dengan kualitas lebih rendah jika masih > 500KB
+                const reducedDataURL = canvas.toDataURL('image/jpeg', 0.4);
+                console.log('Compressed to:', Math.round(reducedDataURL.length / 1024), 'KB');
+                fotoDataInput.value = reducedDataURL;
+            } else {
+                fotoDataInput.value = dataURL;
+            }
 
             const img = document.createElement('img');
             img.src = dataURL;
@@ -161,7 +177,6 @@ document.addEventListener('DOMContentLoaded', function () {
             
             photoPreview.innerHTML = '';
             photoPreview.appendChild(img);
-            fotoDataInput.value = dataURL;
 
             stopCamera();
             if (retakePhotoBtn) retakePhotoBtn.style.display = 'inline-flex';
